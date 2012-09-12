@@ -5,7 +5,7 @@ our $VERSION = '0.03';
 
 1;
 
-__END__
+=begin pod
 
 =encoding UTF-8
 
@@ -17,3 +17,4 @@ Games::BubbleBreaker - a mouse based logic game
 
     perl6 bin/bubble-breaker.p6
 
+=end pod
