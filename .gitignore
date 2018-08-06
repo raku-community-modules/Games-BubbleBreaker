@@ -8,3 +8,4 @@ MYMETA.*
 *.bak
 *Thumbs.db
 Build.bat
+.precomp

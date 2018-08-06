@@ -1,4 +1,4 @@
-#!perl6
+#!/usr/bin/env perl6
 
 #~ use lib '../p6-SDL/lib';
 use SDL;
