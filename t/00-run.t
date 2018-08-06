@@ -1,24 +1,19 @@
-use strict;
-use warnings;
-use Time::HiRes;
-use Capture::Tiny;
-use Test::Most 'bail';
+use v6;
+use Test;
 
-my $time                   = Time::HiRes::time;
-$ENV{'BUBBLEBREAKER_TEST'} = 1;
+plan 3;
 
-ok( -e 'bin/bubble-breaker.p6',             'bin/bubble-breaker.p6 exists' );
-is( system("$^X -e 1"),                  0, "we can execute perl as $^X" );
-my ($stdout, $stderr) = Capture::Tiny::capture { system("bin/bubble-breaker.p6") };
-ok( !$stderr, 'bubble-breaker ran ' . (Time::HiRes::time - $time) . ' seconds' );
+my $time = BEGIN now;
+%*ENV<BUBBLEBREAKER_TEST> = 1;
 
-$stdout ||= '';
+ok 'bin/bubble-breaker.p6'.IO.e, 'bin/bubble-breaker.p6 exists';
 
-if($stderr) {
-    diag( "\$^X   = $^X");
-    diag( "STDERR = $stderr");
-}
+my $proc = run 'bin/bubble-breaker.p6', :out, :err;
+
+my $stdout = $proc.out.slurp-rest;
+my $stderr = $proc.err.slurp-rest;
+ok !$stderr, "bubble-breaker ran {now - $time} seconds";
+
+diag "STDERR = $stderr" if $stderr;
 
 pass 'Are we still alive? Checking for segfaults';
-
-done_testing();
