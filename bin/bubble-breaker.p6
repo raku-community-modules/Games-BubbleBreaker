@@ -2,10 +2,11 @@
 
 #~ use lib '../p6-SDL/lib';
 use SDL;
-use SDL::Video;
-use SDL::Surface;
-use SDL::App;
-use SDL::SFont;
+use NativeCall;
+# use SDL::Video;
+# use SDL::Surface;
+# use SDL::App;
+# use SDL::SFont;
 
 say "
 **************************** Information **********************************
@@ -23,16 +24,16 @@ my $videodriver        = %*ENV<SDL_VIDEODRIVER>;
 %*ENV<SDL_VIDEODRIVER> = 'dummy' if %*ENV<BUBBLEBREAKER_TEST>;
 
 # initializing video and retrieving current video resolution
-SDL::init( 32 );
+SDL_Init(SDL_INIT_VIDEO);
 %*ENV<SDL_VIDEO_CENTERED> = 'center';
-my $app                     = SDL::App.new( 800, 352, 32, 0 );
-my $HOME                    = $*DISTRO.is-win
-                            ?? %*ENV{'HOMEDRIVE'} ~ '/' ~ %*ENV{'HOMEPATH'} ~ '/.bubble-breaker'
-                            !! "%*ENV{'HOME'}/.bubble-breaker";
-my $SHARE                   = 'share';
-my $last_click              = now;
-my $sfont_white             = SDL::SFont.new("$SHARE/font_white.png");
-my $sfont_blue              = SDL::SFont.new("$SHARE/font_blue.png");
+my $app                   = SDL_SetVideoMode(800, 352, 32, SDL_SWSURFACE);
+my $HOME                  = $*DISTRO.is-win
+                          ?? %*ENV{'HOMEDRIVE'} ~ '/' ~ %*ENV{'HOMEPATH'} ~ '/.bubble-breaker'
+                          !! "%*ENV{'HOME'}/.bubble-breaker";
+my $SHARE                 = 'share';
+my $last_click            = now;
+# FIXME: my $sfont_white           = SDL::SFont.new("$SHARE/font_white.png");
+# FIXME: my $sfont_blue            = SDL::SFont.new("$SHARE/font_blue.png");
 mkdir($HOME) unless $HOME.IO.d;
 
 # ingame states
@@ -43,13 +44,13 @@ my $neighbours  = {};
 my @highscore   = ();
 
 # images
-my $background = SDL::Surface.new( "$SHARE/background.png" );
+my $background = IMG_Load("$SHARE/background.png");
 my @balls      =
-    SDL::Surface.new( "$SHARE/red.png" ),
-    SDL::Surface.new( "$SHARE/green.png" ),
-    SDL::Surface.new( "$SHARE/yellow.png" ),
-    SDL::Surface.new( "$SHARE/pink.png" ),
-    SDL::Surface.new( "$SHARE/blue.png" ),
+    IMG_Load("$SHARE/red.png"),
+    IMG_Load("$SHARE/green.png"),
+    IMG_Load("$SHARE/yellow.png"),
+    IMG_Load("$SHARE/pink.png"),
+    IMG_Load("$SHARE/blue.png"),
 ;
 
 new_round();
@@ -69,27 +70,41 @@ new_round();
 #    } );
 #}
 
-$app.add_show_handler( sub { $app.update } );
+#$app.add_show_handler( sub { $app.update } );
 
-# main event loop
-$app.add_event_handler( sub ( $e ) {
-    if $e.type == SDL::Event::SDL_KEYDOWN && $e.key_sym == SDL::Event::SDLK_ESCAPE
-    || $e.type == SDL::Event::SDL_QUIT {
-        $app.stop;
+loop {
+    my $e = SDL_Event.new;
+    while SDL_PollEvent($e) {
+        handle_event($e);
     }
-    elsif $e.type == SDL::Event::SDL_MOUSEBUTTONDOWN && $e.button_button == SDL::Event::SDL_BUTTON_LEFT {
+
+    SDL_UpdateRect($app, 0, 0, 800, 352);
+    SDL_Delay(20);
+}
+
+sub handle_event($e) {
+    if $e.type == SDL_KEYDOWN && $e.key.keysym.sym == SDLK_ESCAPE
+    || $e.type == SDL_QUIT {
+        exit;
+    }
+    elsif $e.type == SDL_MOUSEBUTTONDOWN && $e.button.state == SDL_BUTTON_LEFT { # TODO: Warum .state und nicht .button?
         my $time = now;
 
-        if $e.button_x >= 278 && $e.button_x <= 278 + 15 * 25
-        && $e.button_y >=  28 && $e.button_y <=  28 + 12 * 25 {
-            if $time - $last_click < 0.8 && remove_selection( $neighbours ) {
+        if $e.button.x >= 278 && $e.button.x <= 278 + 15 * 25
+        && $e.button.y >=  28 && $e.button.y <=  28 + 12 * 25 {
+            if $time - $last_click < 0.8 && remove_selection($neighbours) {
                 $neighbours = {};
-                $background.blit( $app );
+                SDL_BlitSurface($background, void, $app, void);
 
                 # redraw everything because columns might be moved to the middle
                 for 0..14 -> $x {
                     for 0..11 -> $y {
-                        @balls[%balls{$x}{$y} // next].blit( $app, SDL::Rect, SDL::Rect.new( 280 + $x * 25, 30 + $y * 25, 0, 0 ) );
+                        SDL_BlitSurface(
+                            @balls[%balls{$x}{$y} // next],
+                            void,
+                            $app,
+                            SDL_Rect.new(280 + $x * 25, 30 + $y * 25, 0, 0)
+                        );
                     }
                 }
             }
@@ -97,32 +112,39 @@ $app.add_event_handler( sub ( $e ) {
                 # redraw previous selection
                 for $neighbours.keys -> $x {
                     for $neighbours{$x}.keys -> $y {
-                        $background.blit( $app, SDL::Rect.new( 278 + $x * 25, 28 + $y * 25, 28, 28 ), SDL::Rect.new( 278 + $x * 25, 28 + $y * 25, 0, 0 ) );
-                        @balls[%balls{$x}{$y} // next].blit( $app, SDL::Rect, SDL::Rect.new( 280 + $x * 25, 30 + $y * 25, 0, 0 ) );
+                        SDL_BlitSurface(
+                            $background,
+                            SDL_Rect.new(278 + $x * 25, 28 + $y * 25, 28, 28),
+                            $app,
+                            SDL_Rect.new(278 + $x * 25, 28 + $y * 25, 0, 0)
+                        );
+                        SDL_BlitSurface(
+                            @balls[%balls{$x}{$y} // next],
+                            void,
+                            $app,
+                            SDL_Rect.new(280 + $x * 25, 30 + $y * 25, 0, 0)
+                        );
                     }
                 }
 
-                my $control = @controls[ (($e.button_x - 278) / 25).Int * 12 + (($e.button_y - 28) / 25).Int ];
+                my $control = @controls[(($e.button.x - 278) / 25).Int * 12 + (($e.button.y - 28) / 25).Int];
 
                 if %balls{ $control[4] }{ $control[5] }.defined {
                     $neighbours = {};
                     neighbours( $control[4], $control[5], $neighbours );
-                    draw_shape( $neighbours );
+                    # FIXME: draw_shape( $neighbours );
                 }
             }
         }
-        elsif ( 20 < $e.button_x) && ($e.button_x < 220)
-           && (235 < $e.button_y) && ($e.button_y < 280) {
+        elsif ( 20 < $e.button.x) && ($e.button.x < 220)
+           && (235 < $e.button.y) && ($e.button.y < 280) {
             new_round();
         }
         $last_click = $time;
-        $sfont_blue.blit_text( $app, 250 - $sfont_white.text_width( $points ), 160, $points );
+        # FIXME: $sfont_blue.blit_text( $app, 250 - $sfont_white.text_width( $points ), 160, $points );
         draw_highscore();
-        $app.update
     }
-} );
-
-$app.run;
+}
 
 sub new_round {
     $points     = 0;
@@ -131,14 +153,14 @@ sub new_round {
     $neighbours = {};
     @highscore  = ();
 
-    $background.blit($app);
+    SDL_BlitSurface($background, void, $app, void);
     draw_highscore();
 
     for 0..14 -> $x {
         for 0..11 -> $y {
             my $color      = 5.rand.Int;
             %balls{$x}{$y} = $color;
-            @balls[$color].blit( $app, SDL::Rect, SDL::Rect.new( 280 + $x * 25, 30 + $y * 25, 0, 0 ) );
+            SDL_BlitSurface(@balls[$color], void, $app, SDL_Rect.new(280 + $x * 25, 30 + $y * 25, 0, 0));
             @controls.push: $[ 278 + $x * 25, 28 + $y * 25, 303 + $x * 25, 53 + $y * 25, $x, $y ];
         }
     }
@@ -159,12 +181,14 @@ sub draw_highscore {
     my $points_drawn = 0;
     while $line < 10 && @score[$line] {
         if @score[$line] == $points && !$points_drawn {
-            $sfont_white.blit_text( $app, 780 - $sfont_white.text_width( @score[$line] ), 60 + 25 * $line, @score[$line++] );
+            # FIXME: $sfont_white.blit_text( $app, 780 - $sfont_white.text_width( @score[$line] ), 60 + 25 * $line, @score[$line] );
             $points_drawn = 1;
         }
         else {
-            $sfont_blue.blit_text( $app, 780 - $sfont_blue.text_width( @score[$line] ), 60 + 25 * $line, @score[$line++] );
+            # FIXME: $sfont_blue.blit_text( $app, 780 - $sfont_blue.text_width( @score[$line] ), 60 + 25 * $line, @score[$line] );
         }
+
+        $line++;
     }
 
     if my $fh = open( "$HOME/highscore.dat", :w ) {
@@ -234,7 +258,7 @@ sub remove_selection ( $n ) {
     $removed
 }
 
-sub draw_shape ( $n ) {
+sub draw_shape ($n) {
     my %lines = ();
 
     for $n.keys -> $x {
@@ -251,7 +275,7 @@ sub draw_shape ( $n ) {
             for %lines{$x1}{$y1}.keys -> $x2 {
                 for %lines{$x1}{$y1}{$x2}.keys -> $y2 {
                     if %lines{$x1}{$y1}{$x2}{$y2} == 1 {
-                        $app.draw_line( $x1.Int, $y1.Int, $x2.Int, $y2.Int, 0x153C99 );
+                        # FIXME: $app.draw_line( $x1.Int, $y1.Int, $x2.Int, $y2.Int, 0x153C99 );
                     }
                 }
             }
@@ -285,8 +309,4 @@ sub neighbours ( $x, $y, $n ) {
     }
 }
 
-if $videodriver {
-    %*ENV<SDL_VIDEODRIVER> = $videodriver;
-} else {
-    %*ENV<SDL_VIDEODRIVER> = Str;
-}
+%*ENV<SDL_VIDEODRIVER> = $videodriver || Str;
