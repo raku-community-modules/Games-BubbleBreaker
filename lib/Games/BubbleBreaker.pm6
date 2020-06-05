@@ -3,8 +3,6 @@ unit module Games::BubbleBreaker;
 
 our $VERSION = '0.03';
 
-1;
-
 =begin pod
 
 =encoding UTF-8
