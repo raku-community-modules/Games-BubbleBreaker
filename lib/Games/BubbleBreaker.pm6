@@ -1,5 +1,5 @@
 
-module Games::BubbleBreaker;
+unit module Games::BubbleBreaker;
 
 our $VERSION = '0.03';
 
