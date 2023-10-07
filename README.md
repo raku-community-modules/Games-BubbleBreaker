@@ -2,15 +2,23 @@
 
 ### Installation
 
-This game requires `libSDL` and `libSDL_mixer`. On Debian-based systems
+This game requires `libSDL`, `libSDL_image` and `libSDL_mixer`. On Debian-based systems
 you can install these with:
 
 ```bash
-sudo apt install libsdl1.2-dev libsdl-mixer1.2-dev
+sudo apt install libsdl1.2-dev libsdl-mixer1.2-dev libsdl-image1.2-dev
 ```
 
 ### Running
 
+The script can be ran from the sources by
+
 ```bash
-perl6 bin/bubble-breaker.p6
+raku bin/bubble-breaker.raku
+```
+
+after installation, it can be executed as simply as
+
+```bash
+bubble-breaker.raku
 ```

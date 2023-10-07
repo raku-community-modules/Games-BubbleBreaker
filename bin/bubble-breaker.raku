@@ -1,6 +1,5 @@
-#!/usr/bin/env perl6
+#!/usr/bin/env raku
 
-#~ use lib '../p6-SDL/lib';
 use SDL;
 use NativeCall;
 # use SDL::Video;

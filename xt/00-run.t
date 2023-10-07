@@ -6,9 +6,9 @@ plan 3;
 my $time = BEGIN now;
 %*ENV<BUBBLEBREAKER_TEST> = 1;
 
-ok 'bin/bubble-breaker.p6'.IO.e, 'bin/bubble-breaker.p6 exists';
+ok 'bin/bubble-breaker.raku'.IO.e, 'bin/bubble-breaker.raku exists';
 
-my $proc = run 'bin/bubble-breaker.p6', :out, :err;
+my $proc = run 'bin/bubble-breaker.raku', :out, :err;
 
 my $stdout = $proc.out.slurp-rest;
 my $stderr = $proc.err.slurp-rest;

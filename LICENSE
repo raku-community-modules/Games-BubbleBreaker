@@ -361,7 +361,7 @@ the programs of this Package do not automatically fall under the copyright of th
 Package, but belong to whomever generated them, and may be sold
 commercially, and may be aggregated with this Package.
 
-7. C or perl subroutines supplied by you and linked into this Package shall not
+7. C or Raku subroutines supplied by you and linked into this Package shall not
 be considered part of this Package.
 
 8. Aggregation of this Package with a commercial distribution is always permitted

@@ -1,11 +1,13 @@
 {
-    "perl" : "6.*",
+    "auth": "zef:raku-community-modules",
+    "authors": [
+        "Tobias Leich"
+    ],
+    "raku" : "6.d",
     "name" : "Games::BubbleBreaker",
-    "version" : "*",
+    "version" : "0.0.1",
     "description" : "A mouse based logic game",
-    "provides" : {
-        "Games::BubbleBreaker" : "lib/Games/BubbleBreaker.pm6"
-    },
     "depends" : [ "SDL" ],
-    "source-url" : "git://github.com/FROGGS/p6-Games-BubbleBreaker.git"
+    "provides": {},
+    "source-url" : "https://github.com/raku-community-modules/Games-BubbleBreaker.git"
 }
