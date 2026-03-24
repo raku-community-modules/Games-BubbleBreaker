@@ -11,7 +11,7 @@ sudo apt install libsdl1.2-dev libsdl-mixer1.2-dev libsdl-image1.2-dev
 
 ### Running
 
-The script can be ran from the sources by
+The script can be run from the sources by
 
 ```bash
 raku bin/bubble-breaker.raku
